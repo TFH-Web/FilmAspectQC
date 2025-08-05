@@ -43,7 +43,7 @@ export async function getMediaDimensions(file: File, url: string): Promise<Media
     throw new Error('Invalid file type');
   }
   
-  let dimensions;
+  let dimensions: { width: number; height: number; duration?: number };
   
   if (type === 'image') {
     dimensions = await getImageDimensions(url);
@@ -58,7 +58,7 @@ export async function getMediaDimensions(file: File, url: string): Promise<Media
     height: dimensions.height,
     fileName: file.name,
     fileSize: file.size,
-    duration: 'duration' in dimensions ? dimensions.duration : undefined
+    duration: dimensions.duration
   };
 }
 
