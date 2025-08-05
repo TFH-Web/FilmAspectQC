@@ -25,7 +25,6 @@ export function ControlsPanel({
   
   const handleExportScreenshot = () => {
     // This is a placeholder for screenshot functionality
-    // In a real implementation, you'd use html2canvas or similar
     alert('Screenshot export will be implemented in the next version');
   };
   
