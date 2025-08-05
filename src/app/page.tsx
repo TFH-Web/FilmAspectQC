@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { MediaUploader } from '@/components/MediaUploader';
 import { MediaPreview } from '@/components/MediaPreview';
 import { QCInfoPanel } from '@/components/QCInfoPanel';
@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { MediaMeta, QCResult } from '@/types/media';
 import { getMediaDimensions, performQC, isValidFileType, formatFileSize, formatDuration } from '@/lib/mediaUtils';
 import { MAX_FILE_SIZE } from '@/lib/constants';
+import { mediaStorage } from '@/lib/storageUtils';
 import { Monitor, Info, X, Upload } from 'lucide-react';
 
 export default function Home() {
@@ -21,6 +22,16 @@ export default function Home() {
   const [showOverlay, setShowOverlay] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [storageInfo, setStorageInfo] = useState<{ used: number; quota: number } | null>(null);
+  
+  // Load storage info on mount
+  useEffect(() => {
+    const loadStorageInfo = async () => {
+      const info = await mediaStorage.getStorageInfo();
+      setStorageInfo(info);
+    };
+    loadStorageInfo();
+  }, [media]); // Refresh after media changes
   
   const handleFileSelect = useCallback(async (file: File) => {
     setError(null);
@@ -33,18 +44,21 @@ export default function Home() {
       return;
     }
     
-    if (file.size > MAX_FILE_SIZE) {
-      setError('File too large. Maximum size is 500MB.');
-      setLoading(false);
-      return;
-    }
-    
     try {
       // Create object URL for the file
       const url = URL.createObjectURL(file);
       
       // Get media dimensions
       const mediaMeta = await getMediaDimensions(file, url);
+      
+      // Save to IndexedDB
+      const storageId = await mediaStorage.saveMedia(file, {
+        width: mediaMeta.width,
+        height: mediaMeta.height
+      });
+      
+      // Add storage ID to metadata
+      mediaMeta.id = storageId;
       
       // Perform QC check
       const qc = performQC(mediaMeta);
@@ -53,6 +67,11 @@ export default function Home() {
       setMedia(mediaMeta);
       setQcResult(qc);
       setShowOverlay(true);
+      
+      // Log storage info
+      const storageInfo = await mediaStorage.getStorageInfo();
+      console.log('Storage used:', (storageInfo.used / 1024 / 1024).toFixed(2), 'MB');
+      console.log('Storage quota:', (storageInfo.quota / 1024 / 1024).toFixed(2), 'MB');
     } catch (err) {
       console.error('Error processing file:', err);
       setError('Failed to process media file. Please try again.');
@@ -67,10 +86,16 @@ export default function Home() {
     }
   }, [currentFile]);
   
-  const handleReset = useCallback(() => {
+  const handleReset = useCallback(async () => {
     // Clean up object URL
     if (media?.url) {
       URL.revokeObjectURL(media.url);
+    }
+    
+    // Optionally delete from storage (or keep for history)
+    if (media?.id) {
+      // Uncomment to delete: await mediaStorage.deleteMedia(media.id);
+      console.log('File stored with ID:', media.id);
     }
     
     setCurrentFile(null);
@@ -170,7 +195,7 @@ export default function Home() {
             
             {/* Overlay Control */}
             <div className="col-span-2 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 shadow-xl">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm font-medium text-white">Show Zones</p>
                   <p className="text-xs text-gray-400 mt-1">Display screen overlay</p>
@@ -182,6 +207,24 @@ export default function Home() {
                   className="data-[state=checked]:bg-white data-[state=unchecked]:bg-gray-600"
                 />
               </div>
+              
+              {/* Storage Info */}
+              {storageInfo && (
+                <div className="pt-3 border-t border-white/10">
+                  <p className="text-xs text-gray-400 mb-1">Local Storage</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-white/30 transition-all duration-300"
+                        style={{ width: `${Math.min((storageInfo.used / storageInfo.quota) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-300">
+                      {((storageInfo.used / 1024 / 1024).toFixed(0))}MB
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           

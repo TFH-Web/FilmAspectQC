@@ -1,6 +1,7 @@
 export type MediaType = 'image' | 'video';
 
 export interface MediaMeta {
+  id?: string; // Storage ID for IndexedDB
   url: string;
   type: MediaType;
   width: number;

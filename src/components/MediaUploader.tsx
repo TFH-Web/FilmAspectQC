@@ -5,7 +5,7 @@ import { Upload, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from '@/lib/constants';
+import { ACCEPTED_FILE_TYPES } from '@/lib/constants';
 import { isValidFileType } from '@/lib/mediaUtils';
 
 interface MediaUploaderProps {
@@ -50,10 +50,7 @@ export function MediaUploader({ onFileSelect, onClear, currentFile, error }: Med
       return;
     }
     
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      return;
-    }
+    // No file size limit - removed MAX_FILE_SIZE check
     
     onFileSelect(file);
   };
@@ -82,8 +79,8 @@ export function MediaUploader({ onFileSelect, onClear, currentFile, error }: Med
             <p className="text-sm font-medium text-white mb-1">Drop your file here</p>
             <p className="text-xs text-gray-400">or click to browse</p>
             <div className="mt-4 text-xs text-gray-500">
-              <p>PNG, JPG, MP4, MOV • Max 500MB</p>
-              <p className="mt-1">4140×1080px</p>
+              <p>PNG, JPG, MP4, MOV</p>
+              <p className="mt-1">Expected: 4140×1080px</p>
             </div>
           </label>
         </div>
