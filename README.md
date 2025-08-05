@@ -28,18 +28,19 @@ This tool validates media files against specific display requirements for a 5-sc
 ### Core Functionality
 - ✅ **Unlimited File Size** - No upload restrictions, files stored locally
 - 🗄️ **Local Storage** - Uses IndexedDB for persistent file storage
+- 🧹 **Storage Management** - Built-in cleanup and monitoring tools
 - 🎨 **Glass UI Design** - Modern mirror/glass-morphism aesthetic
 - 📏 **Real-time Preview** - View media with overlay zones
 - 🎯 **Dimension Validation** - Automatic resolution checking
 - 🎥 **Video Support** - Full playback controls for video files
-- 📊 **Storage Monitoring** - Track local storage usage
+- 📊 **Storage Monitoring** - Track local storage usage with visual indicators
 
-### Technical Features
-- **File Types:** PNG, JPG, MP4, MOV
-- **Storage:** Browser IndexedDB (no server required)
-- **Performance:** Optimized for large files
-- **Overlay System:** Toggle screen zones visualization
-- **Responsive:** Desktop-optimized interface
+### Storage Management Features
+- **Auto-cleanup** - Automatically removes files older than 7 days
+- **Manual cleanup** - Clear all storage with one click
+- **Storage monitoring** - Visual progress bar showing usage
+- **Warning system** - Alerts when storage reaches 80% capacity
+- **File tracking** - Shows total files and combined size
 
 ## Installation
 
@@ -87,6 +88,11 @@ npm start
    - See how content maps to each display
    - HD guide shows standard 1920×1080 placement
 
+4. **Manage Storage**
+   - Monitor storage usage in real-time
+   - Clear all files when needed
+   - Automatic cleanup of old files
+
 ## Project Structure
 
 ```
@@ -96,6 +102,7 @@ src/
 │   ├── MediaUploader.tsx
 │   ├── MediaPreview.tsx
 │   ├── OverlayGrid.tsx
+│   ├── StorageManager.tsx  # Storage management UI
 │   └── ui/          # shadcn/ui components
 ├── lib/             # Utilities
 │   ├── constants.ts
@@ -106,10 +113,13 @@ src/
 
 ## Local Storage
 
-The application uses IndexedDB for local file storage:
+The application uses IndexedDB for local file storage with intelligent management:
 
+### Storage Features
 - **No upload limits** - Store files of any size
 - **Persistent storage** - Files remain after browser refresh
+- **Auto-cleanup** - Removes files older than 7 days
+- **Manual control** - Clear storage anytime
 - **Browser-based** - No server infrastructure needed
 - **Privacy-focused** - Files never leave your computer
 
@@ -125,32 +135,35 @@ await mediaStorage.getMedia(id)
 // Get all stored media
 await mediaStorage.getAllMedia()
 
+// Delete specific file
+await mediaStorage.deleteMedia(id)
+
+// Clear all storage
+await mediaStorage.clearAll()
+
 // Check storage usage
 await mediaStorage.getStorageInfo()
+
+// Auto-cleanup old files (days to keep)
+await autoCleanupOldFiles(7)
 ```
 
-## Upcoming Features
+### Storage Limits
 
-### 🔄 File History Panel
-Show and manage previously uploaded files with quick access to past QC results.
+Browser storage quotas vary:
+- **Chrome/Edge:** ~60% of free disk space
+- **Firefox:** ~50% of free disk space  
+- **Safari:** ~1GB initially, can request more
 
-### 🧹 Storage Management
-- Clear all stored files button
-- Individual file deletion
-- Storage usage statistics
-- Quota warnings
+## Memory Management
 
-### ⏰ Auto-cleanup
-- Configurable retention periods
-- Automatic removal of old files
-- Smart storage optimization
-- Keep recent or starred files
+The app efficiently manages memory through:
 
-### 📦 Export/Import
-- Backup stored files to disk
-- Export QC reports
-- Import media collections
-- Share configurations
+1. **IndexedDB Storage** - Files stored on disk, not RAM
+2. **Object URL Cleanup** - Temporary URLs revoked after use
+3. **Auto-cleanup** - Old files removed automatically
+4. **Manual Control** - Clear storage when needed
+5. **Visual Monitoring** - Track usage in real-time
 
 ## Browser Compatibility
 
@@ -162,7 +175,8 @@ Show and manage previously uploaded files with quick access to past QC results.
 
 ## Configuration
 
-Display dimensions can be modified in `src/lib/constants.ts`:
+### Display Dimensions
+Modify in `src/lib/constants.ts`:
 
 ```typescript
 export const SCREEN_DIMENSIONS = {
@@ -171,6 +185,14 @@ export const SCREEN_DIMENSIONS = {
   centerScreen: { width: 2700, height: 1080 },
   pillar: { width: 360, height: 1080 }
 }
+```
+
+### Auto-cleanup Settings
+Adjust retention period in `src/app/page.tsx`:
+
+```typescript
+// Change the number of days to keep files
+await autoCleanupOldFiles(7); // Currently 7 days
 ```
 
 ## Development
@@ -184,7 +206,16 @@ npm run lint
 
 # Type check
 npm run type-check
+
+# Local build
+npm run build
 ```
+
+## Deployment
+
+Deployed on Vercel with automatic deployments from main branch.
+
+Production URL: [https://church-media-qc.vercel.app](https://church-media-qc.vercel.app)
 
 ## Contributing
 
@@ -199,6 +230,13 @@ npm run type-check
 - Storage quota varies by browser (typically 10-50% of available disk space)
 - Very large video files may cause performance issues during processing
 - Some older browsers may have reduced IndexedDB capabilities
+
+## Upcoming Features
+
+- 📜 **File History Panel** - Browse and restore previous uploads
+- 💾 **Export/Import** - Backup and restore stored files
+- 🏷️ **File Tagging** - Organize files with custom tags
+- 🔍 **Search Function** - Find files by name, date, or dimensions
 
 ## License
 

@@ -3,10 +3,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { MediaUploader } from '@/components/MediaUploader';
 import { MediaPreview } from '@/components/MediaPreview';
+import { StorageManager } from '@/components/StorageManager';
 import { Switch } from '@/components/ui/switch';
 import { MediaMeta, QCResult } from '@/types/media';
 import { getMediaDimensions, performQC, isValidFileType, formatFileSize, formatDuration } from '@/lib/mediaUtils';
 import { mediaStorage } from '@/lib/storageUtils';
+import { autoCleanupOldFiles } from '@/components/StorageManager';
 import { Monitor, X, Upload } from 'lucide-react';
 
 export default function Home() {
@@ -23,6 +25,9 @@ export default function Home() {
     const loadStorageInfo = async () => {
       const info = await mediaStorage.getStorageInfo();
       setStorageInfo(info);
+      
+      // Auto-cleanup files older than 7 days
+      await autoCleanupOldFiles(7);
     };
     loadStorageInfo();
   }, [media]); // Refresh after media changes
@@ -259,6 +264,11 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+              </div>
+              
+              {/* Storage Manager */}
+              <div className="lg:col-span-4">
+                <StorageManager onStorageCleared={handleReset} />
               </div>
               
               {/* Dimensions */}
