@@ -13,7 +13,20 @@ interface StorageManagerProps {
 
 export function StorageManager({ onStorageCleared }: StorageManagerProps) {
   const [storageInfo, setStorageInfo] = useState<{ used: number; quota: number } | null>(null);
-  const [storedFiles, setStoredFiles] = useState<any[]>([]);
+  const [storedFiles, setStoredFiles] = useState<Array<{
+    id: string;
+    file: File;
+    metadata: {
+      fileName: string;
+      fileSize: number;
+      type: string;
+      uploadDate: number;
+      dimensions?: {
+        width: number;
+        height: number;
+      };
+    };
+  }>>([]);
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -46,14 +59,7 @@ export function StorageManager({ onStorageCleared }: StorageManagerProps) {
     }
   };
 
-  const handleDeleteFile = async (id: string) => {
-    try {
-      await mediaStorage.deleteMedia(id);
-      await loadStorageInfo();
-    } catch (error) {
-      console.error('Error deleting file:', error);
-    }
-  };
+  // Removed unused handleDeleteFile function
 
   if (!storageInfo) return null;
 
