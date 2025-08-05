@@ -8,10 +8,11 @@ import { ControlsPanel } from '@/components/ControlsPanel';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { MediaMeta, QCResult } from '@/types/media';
-import { getMediaDimensions, performQC, isValidFileType } from '@/lib/mediaUtils';
+import { getMediaDimensions, performQC, isValidFileType, formatFileSize, formatDuration } from '@/lib/mediaUtils';
 import { MAX_FILE_SIZE } from '@/lib/constants';
-import { Monitor, Info } from 'lucide-react';
+import { Monitor, Info, X, Upload } from 'lucide-react';
 
 export default function Home() {
   const [currentFile, setCurrentFile] = useState<File | null>(null);
@@ -80,130 +81,195 @@ export default function Home() {
   }, [media]);
   
   return (
-    <main className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8 text-center relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 blur-3xl -z-10" />
-        <div className="flex items-center justify-center mb-4">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-2xl shadow-purple-500/25">
-            <Monitor className="h-8 w-8 text-white" />
-          </div>
-        </div>
-        <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-          Church Media QC Tool
-        </h1>
-        <p className="text-gray-400 max-w-2xl mx-auto">
-          Verify your media content is properly formatted for our 5-screen stage display system
-        </p>
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <Badge variant="outline" className="border-gray-700 text-gray-300 backdrop-blur-sm bg-white/5">
-            4140×1080px Total
-          </Badge>
-          <Badge variant="outline" className="border-green-600/50 text-green-400 backdrop-blur-sm bg-green-500/10">
-            2700×1080px Center
-          </Badge>
-          <Badge variant="outline" className="border-red-600/50 text-red-400 backdrop-blur-sm bg-red-500/10">
-            360×1080px Pillars ×4
-          </Badge>
-        </div>
-      </div>
+    <main className="min-h-screen bg-black p-6 relative overflow-hidden">
+      {/* Background gradient effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/10 via-transparent to-transparent" />
       
-      {/* Info Alert */}
-      <div className="mb-6 p-4 border border-blue-500/20 bg-gradient-to-r from-blue-950/50 to-purple-950/50 backdrop-blur-sm rounded-lg">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
-            <Info className="h-4 w-4 text-blue-400" />
+      <div className="mx-auto max-w-[1400px] relative z-10">
+        {/* Header - Minimal */}
+        <div className="mb-12 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+              <Monitor className="h-6 w-6 text-white/80" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">Media QC</h1>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              <strong className="text-white">Stage Layout:</strong> Content in the center area (green) will display on the main screen. Content in pillar zones (red) will be split across 4 vertical displays. Ensure important content stays within the center safe zone.
-            </p>
-          </div>
+          <p className="text-sm text-gray-300">Verify media for 5-screen display system</p>
         </div>
-      </div>
-      
-      {/* Main Content */}
-      <div className="space-y-6">
-        {/* Top Section - Upload/Preview and Controls */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Column - Upload & Preview */}
-          <div className="lg:col-span-3">
-            <Tabs defaultValue="upload" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-gray-800/50 border border-gray-700">
-                <TabsTrigger 
-                  value="upload" 
-                  disabled={loading}
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+        
+        {/* Bento Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Upload Section - Large tile */}
+          <div className="lg:col-span-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+            <h2 className="text-sm font-medium text-gray-200 mb-4">Upload Media</h2>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-64">
+                <div className="h-12 w-12 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
+                <p className="text-sm text-gray-300 mt-4">Processing...</p>
+              </div>
+            ) : currentFile ? (
+              <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm rounded-xl border border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                    <Upload className="h-5 w-5 text-white/60" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{currentFile.name}</p>
+                    <p className="text-xs text-gray-400">{(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
                 >
-                  Upload Media
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="preview" 
-                  disabled={!media}
-                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
-                >
-                  Preview
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="upload" className="space-y-4">
-                {loading ? (
-                  <Card className="border-gray-700 bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm p-12">
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                      <div className="h-16 w-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-gray-300">Processing media file...</p>
-                    </div>
-                  </Card>
-                ) : (
-                  <MediaUploader
-                    onFileSelect={handleFileSelect}
-                    onClear={handleReset}
-                    currentFile={currentFile}
-                    error={error}
-                  />
-                )}
-              </TabsContent>
-              
-              <TabsContent value="preview">
-                <MediaPreview
-                  media={media}
-                  showOverlay={showOverlay}
-                />
-              </TabsContent>
-            </Tabs>
+                  <X className="h-4 w-4 text-gray-300" />
+                </button>
+              </div>
+            ) : (
+              <MediaUploader
+                onFileSelect={handleFileSelect}
+                onClear={handleReset}
+                currentFile={currentFile}
+                error={error}
+              />
+            )}
           </div>
           
-          {/* Right Column - Controls */}
-          <div className="lg:col-span-1">
-            <ControlsPanel
-              showOverlay={showOverlay}
-              onToggleOverlay={setShowOverlay}
-              onReset={handleReset}
-              media={media}
-            />
+          {/* Stats Grid - Small tiles */}
+          <div className="lg:col-span-4 grid grid-cols-2 gap-4">
+            {/* Resolution Tile */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 shadow-xl">
+              <p className="text-xs text-gray-300 mb-1">Expected</p>
+              <p className="text-lg font-medium text-white">4140×1080</p>
+              <p className="text-xs text-gray-400 mt-2">Total Stage</p>
+            </div>
+            
+            {/* Status Tile */}
+            <div className={`backdrop-blur-xl rounded-2xl border p-4 shadow-xl ${
+              media && qcResult?.dimensionsMatch 
+                ? 'bg-green-500/10 border-green-500/30' 
+                : media 
+                ? 'bg-red-500/10 border-red-500/30'
+                : 'bg-white/5 border-white/10'
+            }`}>
+              <p className="text-xs text-gray-300 mb-1">Status</p>
+              <p className="text-lg font-medium">
+                {media && qcResult ? (
+                  qcResult.dimensionsMatch ? (
+                    <span className="text-green-400">Pass</span>
+                  ) : (
+                    <span className="text-red-400">Fail</span>
+                  )
+                ) : (
+                  <span className="text-gray-300">—</span>
+                )}
+              </p>
+              <p className="text-xs text-gray-400 mt-2">QC Result</p>
+            </div>
+            
+            {/* Overlay Control */}
+            <div className="col-span-2 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-white">Show Zones</p>
+                  <p className="text-xs text-gray-400 mt-1">Display screen overlay</p>
+                </div>
+                <Switch
+                  checked={showOverlay}
+                  onCheckedChange={setShowOverlay}
+                  disabled={!media}
+                  className="data-[state=checked]:bg-white data-[state=unchecked]:bg-gray-600"
+                />
+              </div>
+            </div>
           </div>
+          
+          {/* Preview Section - Full width */}
+          {media && (
+            <div className="lg:col-span-12 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+              <h2 className="text-sm font-medium text-gray-200 mb-4">Preview</h2>
+              <MediaPreview
+                media={media}
+                showOverlay={showOverlay}
+              />
+            </div>
+          )}
+          
+          {/* Info Grid - Bottom section */}
+          {media && qcResult && (
+            <>
+              {/* File Info */}
+              <div className="lg:col-span-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
+                <h3 className="text-sm font-medium text-gray-200 mb-4">File Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-400">Name</p>
+                    <p className="text-sm text-white truncate">{media.fileName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Size</p>
+                    <p className="text-sm text-white">{formatFileSize(media.fileSize)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Type</p>
+                    <p className="text-sm text-white capitalize">{media.type}</p>
+                  </div>
+                  {media.duration && (
+                    <div>
+                      <p className="text-xs text-gray-400">Duration</p>
+                      <p className="text-sm text-white">{formatDuration(media.duration)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Dimensions */}
+              <div className="lg:col-span-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
+                <h3 className="text-sm font-medium text-gray-200 mb-4">Dimensions</h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Actual</p>
+                    <p className={`text-2xl font-light ${
+                      qcResult.dimensionsMatch ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {media.width} × {media.height}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-white/10">
+                    <p className="text-xs text-gray-400">{qcResult.details.message}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Screen Layout */}
+              <div className="lg:col-span-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
+                <h3 className="text-sm font-medium text-gray-200 mb-4">Screen Layout</h3>
+                <div className="grid grid-cols-5 gap-1 h-20">
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P1</span>
+                  </div>
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P2</span>
+                  </div>
+                  <div className="bg-green-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-green-500/30">
+                    <span className="text-[10px] text-green-300">Center</span>
+                  </div>
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P3</span>
+                  </div>
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P4</span>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-gray-400">
+                  <p>Center: 2700×1080</p>
+                  <p>Pillars: 360×1080 each</p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-        
-        {/* Bottom Section - QC Results (Horizontal) */}
-        {media && qcResult && (
-          <QCInfoPanel
-            media={media}
-            qcResult={qcResult}
-          />
-        )}
-        
-        {/* Preview Section (always visible when media is loaded) */}
-        {media && (
-          <div>
-            <h2 className="text-lg font-semibold mb-3 text-gray-300">
-              Media Preview
-            </h2>
-            <MediaPreview
-              media={media}
-              showOverlay={showOverlay}
-            />
-          </div>
-        )}
       </div>
     </main>
   );

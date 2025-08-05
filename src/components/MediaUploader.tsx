@@ -63,8 +63,8 @@ export function MediaUploader({ onFileSelect, onClear, currentFile, error }: Med
   return (
     <div className="w-full">
       {!currentFile ? (
-        <Card
-          className="border-2 border-dashed border-gray-700 bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm p-12 text-center hover:border-gray-500 hover:bg-gray-800/60 transition-all duration-300 cursor-pointer group"
+        <div
+          className="border-2 border-dashed border-white/20 hover:border-white/30 bg-white/5 backdrop-blur-sm rounded-xl p-12 text-center transition-all duration-200 cursor-pointer group"
           onDrop={handleDrop}
           onDragOver={handleDragOver}
         >
@@ -76,33 +76,27 @@ export function MediaUploader({ onFileSelect, onClear, currentFile, error }: Med
             onChange={handleFileInput}
           />
           <label htmlFor="file-upload" className="cursor-pointer">
-            <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl shadow-purple-500/25 pulse">
-              <Upload className="h-8 w-8 text-white" />
+            <div className="mx-auto h-12 w-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center mb-4 group-hover:bg-white/20 transition-all duration-200">
+              <Upload className="h-6 w-6 text-white/60" />
             </div>
-            <p className="text-xl font-semibold mb-2 text-white">Drop your media file here</p>
-            <p className="text-sm text-gray-400 mb-4">
-              or click to browse
-            </p>
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-xs text-gray-500">
-                Supported: PNG, JPG, MP4, MOV (max 500MB)
-              </p>
-              <p className="text-xs text-purple-400 font-medium">
-                Expected resolution: 4140×1080px
-              </p>
+            <p className="text-sm font-medium text-white mb-1">Drop your file here</p>
+            <p className="text-xs text-gray-400">or click to browse</p>
+            <div className="mt-4 text-xs text-gray-500">
+              <p>PNG, JPG, MP4, MOV • Max 500MB</p>
+              <p className="mt-1">4140×1080px</p>
             </div>
           </label>
-        </Card>
+        </div>
       ) : (
-        <Card className="p-6 bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm border-gray-700">
+        <div className="p-4 bg-black/50 rounded-xl border border-gray-800">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/25">
-                <Upload className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-900 rounded-lg">
+                <Upload className="h-5 w-5 text-gray-400" />
               </div>
               <div>
-                <p className="font-medium text-white">{currentFile.name}</p>
-                <p className="text-sm text-gray-400">
+                <p className="font-medium text-sm text-white">{currentFile.name}</p>
+                <p className="text-xs text-gray-500">
                   {(currentFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
@@ -111,12 +105,12 @@ export function MediaUploader({ onFileSelect, onClear, currentFile, error }: Med
               variant="ghost"
               size="sm"
               onClick={onClear}
-              className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+              className="text-gray-400 hover:text-white hover:bg-gray-800"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
-        </Card>
+        </div>
       )}
       
       {error && (

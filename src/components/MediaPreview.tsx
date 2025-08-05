@@ -34,9 +34,9 @@ export function MediaPreview({ media, showOverlay }: MediaPreviewProps) {
   
   if (!media) {
     return (
-      <Card className="w-full h-[600px] flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-gray-400">No media uploaded yet</p>
-      </Card>
+      <div className="w-full h-[400px] flex items-center justify-center bg-black/50 rounded-xl border border-gray-800">
+        <p className="text-gray-500 text-sm">No media uploaded</p>
+      </div>
     );
   }
   
@@ -44,8 +44,8 @@ export function MediaPreview({ media, showOverlay }: MediaPreviewProps) {
   const shouldShowOverlay = showOverlay && !(media.type === 'video' && isVideoHovered);
   
   return (
-    <Card className="w-full overflow-hidden bg-black">
-      <AspectRatio ratio={4140 / 1080} className="bg-gray-900">
+    <div className="w-full overflow-hidden bg-black rounded-xl border border-gray-800">
+      <AspectRatio ratio={4140 / 1080} className="bg-black">
         <div ref={containerRef} className="relative w-full h-full flex items-center justify-center">
           {media.type === 'image' ? (
             <img
@@ -80,12 +80,12 @@ export function MediaPreview({ media, showOverlay }: MediaPreviewProps) {
           
           {/* Show hint when video is hovered */}
           {media.type === 'video' && isVideoHovered && showOverlay && (
-            <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white text-sm px-3 py-2 rounded">
-              Overlay hidden while hovering video
+            <div className="absolute top-4 right-4 bg-black/90 text-white text-xs px-3 py-2 rounded-lg border border-gray-800">
+              Overlay hidden while hovering
             </div>
           )}
         </div>
       </AspectRatio>
-    </Card>
+    </div>
   );
 }

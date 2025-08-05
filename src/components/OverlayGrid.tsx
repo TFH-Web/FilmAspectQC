@@ -65,7 +65,7 @@ export function OverlayGrid({ media, containerWidth, containerHeight, showOverla
                   }}
                 >
                   <div className="flex items-center justify-center h-full pointer-events-none">
-                    <span className="text-white font-bold text-sm bg-red-600 px-2 py-1 rounded shadow-lg">
+                    <span className="text-white text-xs font-medium bg-black/80 px-2 py-1 rounded border border-red-500/50">
                       {pillar.id}
                     </span>
                   </div>
@@ -95,8 +95,8 @@ export function OverlayGrid({ media, containerWidth, containerHeight, showOverla
                 }}
               >
                 <div className="flex items-center justify-center h-full pointer-events-none">
-                  <span className="text-white font-bold text-lg bg-gradient-to-r from-green-600 to-green-500 px-4 py-2 rounded-lg shadow-xl backdrop-blur-sm bg-opacity-90">
-                    CENTER SCREEN
+                  <span className="text-white text-sm font-medium bg-black/80 px-3 py-1.5 rounded-lg border border-green-500/50">
+                    CENTER
                   </span>
                 </div>
               </div>
@@ -124,8 +124,8 @@ export function OverlayGrid({ media, containerWidth, containerHeight, showOverla
                 }}
               >
                 <div className="flex items-end justify-center h-full pb-4 pointer-events-none">
-                  <span className="text-blue-300 font-semibold text-sm bg-gradient-to-r from-blue-900 to-blue-800 px-3 py-1.5 rounded-lg shadow-lg backdrop-blur-sm border border-blue-600/30">
-                    HD GUIDE 1920×1080
+                  <span className="text-white text-xs font-medium bg-black/80 px-2 py-1 rounded border border-blue-500/50">
+                    HD 1920×1080
                   </span>
                 </div>
               </div>
