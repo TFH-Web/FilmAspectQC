@@ -3,7 +3,7 @@ import { SCREEN_DIMENSIONS, ACCEPTED_FILE_TYPES } from './constants';
 
 export function isValidFileType(file: File): boolean {
   const allTypes = [...ACCEPTED_FILE_TYPES.image, ...ACCEPTED_FILE_TYPES.video];
-  return allTypes.includes(file.type);
+  return allTypes.includes(file.type as any);
 }
 
 export function getMediaType(file: File): MediaType | null {

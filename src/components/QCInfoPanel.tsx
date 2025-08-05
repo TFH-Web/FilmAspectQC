@@ -7,7 +7,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CheckCircle2, XCircle, AlertCircle, Info } from 'lucide-react';
 import { MediaMeta, QCResult } from '@/types/media';
 import { formatFileSize, formatDuration } from '@/lib/mediaUtils';
-import { SCREEN_DIMENSIONS } from '@/lib/constants';
 
 interface QCInfoPanelProps {
   media: MediaMeta | null;

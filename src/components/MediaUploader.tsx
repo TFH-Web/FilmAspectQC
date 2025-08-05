@@ -2,7 +2,6 @@
 
 import React, { useCallback } from 'react';
 import { Upload, X } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ACCEPTED_FILE_TYPES } from '@/lib/constants';
@@ -26,7 +25,7 @@ export function MediaUploader({ onFileSelect, onClear, currentFile, error }: Med
         processFile(file);
       }
     },
-    [onFileSelect]
+    [onFileSelect] // eslint-disable-line react-hooks/exhaustive-deps
   );
   
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -41,7 +40,7 @@ export function MediaUploader({ onFileSelect, onClear, currentFile, error }: Med
         processFile(file);
       }
     },
-    [onFileSelect]
+    [onFileSelect] // eslint-disable-line react-hooks/exhaustive-deps
   );
   
   const processFile = (file: File) => {

@@ -4,7 +4,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { MediaMeta } from '@/types/media';
 import { OverlayGrid } from './OverlayGrid';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Card } from '@/components/ui/card';
 
 interface MediaPreviewProps {
   media: MediaMeta | null;
