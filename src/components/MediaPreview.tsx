@@ -14,6 +14,7 @@ interface MediaPreviewProps {
 export function MediaPreview({ media, showOverlay }: MediaPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
+  const [isVideoHovered, setIsVideoHovered] = useState(false);
   
   useEffect(() => {
     const updateDimensions = () => {
@@ -39,6 +40,9 @@ export function MediaPreview({ media, showOverlay }: MediaPreviewProps) {
     );
   }
   
+  // Hide overlay when hovering over video to access controls
+  const shouldShowOverlay = showOverlay && !(media.type === 'video' && isVideoHovered);
+  
   return (
     <Card className="w-full overflow-hidden bg-black">
       <AspectRatio ratio={4140 / 1080} className="bg-gray-900">
@@ -55,7 +59,13 @@ export function MediaPreview({ media, showOverlay }: MediaPreviewProps) {
               src={media.url}
               controls
               className="max-w-full max-h-full object-contain"
-              style={{ display: 'block' }}
+              style={{ 
+                display: 'block',
+                position: 'relative',
+                zIndex: 1 
+              }}
+              onMouseEnter={() => setIsVideoHovered(true)}
+              onMouseLeave={() => setIsVideoHovered(false)}
             >
               Your browser does not support the video tag.
             </video>
@@ -65,8 +75,15 @@ export function MediaPreview({ media, showOverlay }: MediaPreviewProps) {
             media={media}
             containerWidth={containerDimensions.width}
             containerHeight={containerDimensions.height}
-            showOverlay={showOverlay}
+            showOverlay={shouldShowOverlay}
           />
+          
+          {/* Show hint when video is hovered */}
+          {media.type === 'video' && isVideoHovered && showOverlay && (
+            <div className="absolute top-4 right-4 bg-black bg-opacity-75 text-white text-sm px-3 py-2 rounded">
+              Overlay hidden while hovering video
+            </div>
+          )}
         </div>
       </AspectRatio>
     </Card>

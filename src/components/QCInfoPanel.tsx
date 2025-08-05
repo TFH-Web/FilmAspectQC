@@ -131,10 +131,13 @@ export function QCInfoPanel({ media, qcResult }: QCInfoPanelProps) {
               <p className="text-green-600 dark:text-green-500">2700×1080</p>
             </div>
             <div className="text-center p-2 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800">
-              <p className="font-semibold text-blue-700 dark:text-blue-400">Total</p>
-              <p className="text-blue-600 dark:text-blue-500">4140×1080</p>
+              <p className="font-semibold text-blue-700 dark:text-blue-400">HD Guide</p>
+              <p className="text-blue-600 dark:text-blue-500">1920×1080</p>
             </div>
           </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            The HD guide (blue dashed box) shows where standard 1920×1080 content would appear within the center screen.
+          </p>
         </div>
       </CardContent>
     </Card>

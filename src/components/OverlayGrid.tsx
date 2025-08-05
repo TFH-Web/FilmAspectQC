@@ -38,7 +38,8 @@ export function OverlayGrid({ media, containerWidth, containerHeight, showOverla
         className="absolute inset-0 pointer-events-none flex items-center justify-center"
         style={{
           width: containerWidth,
-          height: containerHeight
+          height: containerHeight,
+          zIndex: 10 // Ensure overlay is above video controls
         }}
       >
         <div 
@@ -82,18 +83,19 @@ export function OverlayGrid({ media, containerWidth, containerHeight, showOverla
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className="absolute top-0 pointer-events-auto cursor-help"
+                className="absolute top-0 cursor-help"
                 style={{
                   left: `${SCREEN_DIMENSIONS.safeZone.x * overlayScale}px`,
                   width: `${SCREEN_DIMENSIONS.safeZone.width * overlayScale}px`,
                   height: `${displayHeight}px`,
                   backgroundColor: SCREEN_DIMENSIONS.centerScreen.color,
                   border: `2px solid ${SCREEN_DIMENSIONS.centerScreen.borderColor}`,
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  pointerEvents: 'none'
                 }}
               >
-                <div className="flex items-center justify-center h-full">
-                  <span className="text-white font-bold text-lg bg-green-600 px-3 py-2 rounded">
+                <div className="flex items-center justify-center h-full pointer-events-none">
+                  <span className="text-white font-bold text-lg bg-green-600 px-3 py-2 rounded opacity-75">
                     CENTER SCREEN
                   </span>
                 </div>
@@ -103,6 +105,35 @@ export function OverlayGrid({ media, containerWidth, containerHeight, showOverla
               <p>Main Content Area</p>
               <p className="text-xs text-gray-400">2700×1080px</p>
               <p className="text-xs text-green-400 mt-1">Primary content should be here</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          {/* HD Guideline Box (1920x1080) */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className="absolute top-0 cursor-help"
+                style={{
+                  left: `${SCREEN_DIMENSIONS.hdGuideline.x * overlayScale}px`,
+                  width: `${SCREEN_DIMENSIONS.hdGuideline.width * overlayScale}px`,
+                  height: `${displayHeight}px`,
+                  backgroundColor: SCREEN_DIMENSIONS.hdGuideline.color,
+                  border: `2px dashed ${SCREEN_DIMENSIONS.hdGuideline.borderColor}`,
+                  boxSizing: 'border-box',
+                  pointerEvents: 'none'
+                }}
+              >
+                <div className="flex items-end justify-center h-full pb-4 pointer-events-none">
+                  <span className="text-blue-400 font-semibold text-sm bg-blue-950 px-2 py-1 rounded opacity-90">
+                    HD GUIDE 1920×1080
+                  </span>
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{SCREEN_DIMENSIONS.hdGuideline.label}</p>
+              <p className="text-xs text-gray-400">Standard HD content area</p>
+              <p className="text-xs text-blue-400 mt-1">Use this as a guide for HD content</p>
             </TooltipContent>
           </Tooltip>
           

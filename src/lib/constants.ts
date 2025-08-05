@@ -33,6 +33,17 @@ export const SCREEN_DIMENSIONS = {
     y: 0,
     width: 2700,
     height: 1080
+  },
+  
+  // HD content guideline (1920x1080 centered in the 2700px center screen)
+  hdGuideline: {
+    width: 1920,
+    height: 1080,
+    x: 720 + (2700 - 1920) / 2, // Center it within the center screen
+    y: 0,
+    label: 'HD Content Guide (1920×1080)',
+    color: 'rgba(59, 130, 246, 0.3)', // blue-500 with opacity
+    borderColor: 'rgb(59, 130, 246)'
   }
 } as const;
 
