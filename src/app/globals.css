@@ -1,4 +1,63 @@
-@import "tailwindcss";
+/* Layout utilities */
+  .flex {
+    display: flex;
+  }
+  
+  .flex-1 {
+    flex: 1 1 0%;
+  }
+  
+  .flex-shrink-0 {
+    flex-shrink: 0;
+  }
+  
+  .items-start {
+    align-items: flex-start;
+  }
+  
+  .gap-3 {
+    gap: 0.75rem;
+  }
+  
+  .min-w-0 {
+    min-width: 0;
+  }
+  
+  /* Text utilities */
+  .text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .leading-relaxed {
+    line-height: 1.625;
+  }
+  
+  .whitespace-normal {
+    white-space: normal;
+  }
+  
+  /* Spacing utilities */
+  .p-4 {
+    padding: 1rem;
+  }
+  
+  .p-2 {
+    padding: 0.5rem;
+  }
+  
+  .mb-6 {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Border utilities */
+  .rounded-lg {
+    border-radius: 0.5rem;
+  }
+  
+  .border {
+    border-width: 1px;
+  }@import "tailwindcss";
 
 @layer base {
   :root {
@@ -77,6 +136,52 @@
   }
   .text-foreground {
     color: hsl(var(--foreground));
+  }
+  
+  /* Modern glass effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Glow effects */
+  .glow-purple {
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+  }
+  
+  .glow-blue {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+  
+  /* Pulse animation for upload area */
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+    }
+  }
+  
+  .pulse {
+    animation: pulse 2s infinite;
+  }
+  
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   /* Text colors */

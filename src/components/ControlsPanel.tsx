@@ -25,17 +25,20 @@ export function ControlsPanel({
   
   const handleExportScreenshot = () => {
     // This is a placeholder for screenshot functionality
+    // In a real implementation, you'd use html2canvas or similar
     alert('Screenshot export will be implemented in the next version');
   };
   
   return (
-    <Card>
-      <CardContent className="p-4 space-y-4">
+    <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm border-gray-700">
+      <CardContent className="p-6 space-y-6">
         {/* Overlay Toggle */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Grid3x3 className="h-4 w-4 text-gray-500" />
-            <Label htmlFor="overlay-toggle" className="text-sm font-medium">
+        <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-xl border border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-purple-500/20 rounded-lg">
+              <Grid3x3 className="h-5 w-5 text-purple-400" />
+            </div>
+            <Label htmlFor="overlay-toggle" className="text-sm font-medium text-gray-200">
               Show Screen Zones
             </Label>
           </div>
@@ -44,16 +47,17 @@ export function ControlsPanel({
             checked={showOverlay}
             onCheckedChange={onToggleOverlay}
             disabled={!media}
+            className="data-[state=checked]:bg-purple-600"
           />
         </div>
         
-        <Separator />
+        <Separator className="bg-gray-700" />
         
         {/* Action Buttons */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Button
             variant="outline"
-            className="w-full justify-start"
+            className="w-full justify-start bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 text-gray-200 hover:text-white transition-all duration-200"
             onClick={() => onToggleOverlay(!showOverlay)}
             disabled={!media}
           >
@@ -72,7 +76,7 @@ export function ControlsPanel({
           
           <Button
             variant="outline"
-            className="w-full justify-start"
+            className="w-full justify-start bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 text-gray-200 hover:text-white transition-all duration-200"
             onClick={handleExportScreenshot}
             disabled={!media}
           >
@@ -82,7 +86,7 @@ export function ControlsPanel({
           
           <Button
             variant="outline"
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+            className="w-full justify-start bg-red-950/30 border-red-900/50 text-red-400 hover:bg-red-950/50 hover:text-red-300 hover:border-red-800 transition-all duration-200"
             onClick={onReset}
             disabled={!media}
           >
@@ -92,9 +96,9 @@ export function ControlsPanel({
         </div>
         
         {/* Help Text */}
-        <div className="pt-2">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            <strong>Tip:</strong> The overlay shows where content will appear on each screen. 
+        <div className="pt-2 p-4 bg-blue-950/30 rounded-lg border border-blue-900/50">
+          <p className="text-xs text-blue-300">
+            <strong className="text-blue-200">Tip:</strong> The overlay shows where content will appear on each screen. 
             Red zones are pillars (avoid content here), green zone is the main display area.
           </p>
         </div>
