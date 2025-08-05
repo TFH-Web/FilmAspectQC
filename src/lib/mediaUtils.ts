@@ -7,8 +7,8 @@ export function isValidFileType(file: File): boolean {
 }
 
 export function getMediaType(file: File): MediaType | null {
-  if (ACCEPTED_FILE_TYPES.image.includes(file.type)) return 'image';
-  if (ACCEPTED_FILE_TYPES.video.includes(file.type)) return 'video';
+  if (ACCEPTED_FILE_TYPES.image.includes(file.type as any)) return 'image';
+  if (ACCEPTED_FILE_TYPES.video.includes(file.type as any)) return 'video';
   return null;
 }
 
