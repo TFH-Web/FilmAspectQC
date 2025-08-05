@@ -1,103 +1,188 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useCallback } from 'react';
+import { MediaUploader } from '@/components/MediaUploader';
+import { MediaPreview } from '@/components/MediaPreview';
+import { QCInfoPanel } from '@/components/QCInfoPanel';
+import { ControlsPanel } from '@/components/ControlsPanel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { MediaMeta, QCResult } from '@/types/media';
+import { getMediaDimensions, performQC, isValidFileType } from '@/lib/mediaUtils';
+import { MAX_FILE_SIZE } from '@/lib/constants';
+import { Monitor, Info } from 'lucide-react';
 
 export default function Home() {
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [media, setMedia] = useState<MediaMeta | null>(null);
+  const [qcResult, setQcResult] = useState<QCResult | null>(null);
+  const [showOverlay, setShowOverlay] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  const handleFileSelect = useCallback(async (file: File) => {
+    setError(null);
+    setLoading(true);
+    
+    // Validate file
+    if (!isValidFileType(file)) {
+      setError('Invalid file type. Please upload PNG, JPG, MP4, or MOV files.');
+      setLoading(false);
+      return;
+    }
+    
+    if (file.size > MAX_FILE_SIZE) {
+      setError('File too large. Maximum size is 500MB.');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      // Create object URL for the file
+      const url = URL.createObjectURL(file);
+      
+      // Get media dimensions
+      const mediaMeta = await getMediaDimensions(file, url);
+      
+      // Perform QC check
+      const qc = performQC(mediaMeta);
+      
+      setCurrentFile(file);
+      setMedia(mediaMeta);
+      setQcResult(qc);
+      setShowOverlay(true);
+    } catch (err) {
+      console.error('Error processing file:', err);
+      setError('Failed to process media file. Please try again.');
+      
+      // Clean up
+      if (currentFile) {
+        const url = URL.createObjectURL(currentFile);
+        URL.revokeObjectURL(url);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [currentFile]);
+  
+  const handleReset = useCallback(() => {
+    // Clean up object URL
+    if (media?.url) {
+      URL.revokeObjectURL(media.url);
+    }
+    
+    setCurrentFile(null);
+    setMedia(null);
+    setQcResult(null);
+    setShowOverlay(true);
+    setError(null);
+  }, [media]);
+  
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <main className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center mb-4">
+          <Monitor className="h-8 w-8 text-blue-600 mr-3" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Church Media QC Tool
+          </h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Verify your media content is properly formatted for our 5-screen stage display system
+        </p>
+        <div className="flex items-center justify-center gap-2 mt-4">
+          <Badge variant="outline">4140×1080px Total</Badge>
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            2700×1080px Center
+          </Badge>
+          <Badge variant="outline" className="text-red-600 border-red-600">
+            360×1080px Pillars ×4
+          </Badge>
+        </div>
+      </div>
+      
+      {/* Info Alert */}
+      <Alert className="mb-6 border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800 dark:text-blue-200">
+          <strong>Stage Layout:</strong> Content in the center area (green) will display on the main screen. 
+          Content in pillar zones (red) will be split across 4 vertical displays. 
+          Ensure important content stays within the center safe zone.
+        </AlertDescription>
+      </Alert>
+      
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Upload & Preview */}
+        <div className="lg:col-span-2 space-y-6">
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upload" disabled={loading}>
+                Upload Media
+              </TabsTrigger>
+              <TabsTrigger value="preview" disabled={!media}>
+                Preview
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload" className="space-y-4">
+              <MediaUploader
+                onFileSelect={handleFileSelect}
+                onClear={handleReset}
+                currentFile={currentFile}
+                error={error}
+              />
+            </TabsContent>
+            
+            <TabsContent value="preview">
+              <MediaPreview
+                media={media}
+                showOverlay={showOverlay}
+              />
+            </TabsContent>
+          </Tabs>
+          
+          {/* Preview Section (always visible when media is loaded) */}
+          {media && (
+            <div className="block lg:hidden">
+              <MediaPreview
+                media={media}
+                showOverlay={showOverlay}
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* Right Column - Controls & Info */}
+        <div className="space-y-6">
+          <ControlsPanel
+            showOverlay={showOverlay}
+            onToggleOverlay={setShowOverlay}
+            onReset={handleReset}
+            media={media}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          
+          <QCInfoPanel
+            media={media}
+            qcResult={qcResult}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
+        </div>
+      </div>
+      
+      {/* Desktop Preview (always visible when media is loaded) */}
+      {media && (
+        <div className="hidden lg:block mt-6">
+          <h2 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">
+            Media Preview
+          </h2>
+          <MediaPreview
+            media={media}
+            showOverlay={showOverlay}
           />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        </div>
+      )}
+    </main>
   );
 }
