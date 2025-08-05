@@ -3,17 +3,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { MediaUploader } from '@/components/MediaUploader';
 import { MediaPreview } from '@/components/MediaPreview';
-import { QCInfoPanel } from '@/components/QCInfoPanel';
-import { ControlsPanel } from '@/components/ControlsPanel';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { MediaMeta, QCResult } from '@/types/media';
 import { getMediaDimensions, performQC, isValidFileType, formatFileSize, formatDuration } from '@/lib/mediaUtils';
-import { MAX_FILE_SIZE } from '@/lib/constants';
 import { mediaStorage } from '@/lib/storageUtils';
-import { Monitor, Info, X, Upload } from 'lucide-react';
+import { Monitor, X, Upload } from 'lucide-react';
 
 export default function Home() {
   const [currentFile, setCurrentFile] = useState<File | null>(null);

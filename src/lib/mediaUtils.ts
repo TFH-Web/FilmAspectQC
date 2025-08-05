@@ -3,12 +3,12 @@ import { SCREEN_DIMENSIONS, ACCEPTED_FILE_TYPES } from './constants';
 
 export function isValidFileType(file: File): boolean {
   const allTypes = [...ACCEPTED_FILE_TYPES.image, ...ACCEPTED_FILE_TYPES.video];
-  return allTypes.includes(file.type as any);
+  return allTypes.some(type => type === file.type);
 }
 
 export function getMediaType(file: File): MediaType | null {
-  if (ACCEPTED_FILE_TYPES.image.includes(file.type as any)) return 'image';
-  if (ACCEPTED_FILE_TYPES.video.includes(file.type as any)) return 'video';
+  if (ACCEPTED_FILE_TYPES.image.some(type => type === file.type)) return 'image';
+  if (ACCEPTED_FILE_TYPES.video.some(type => type === file.type)) return 'video';
   return null;
 }
 
