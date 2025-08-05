@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Church Media QC Tool
 
-## Getting Started
+A quality control application for validating media content compatibility with multi-screen display systems.
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+This tool validates media files against specific display requirements for a 5-screen stage configuration, ensuring content is properly formatted and positioned.
+
+### Display Configuration
+
+```
+| 360px | 360px |      2700px      | 360px | 360px |
+|  P1   |  P2   |  Center Screen   |  P3   |  P4   |
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Total Resolution:** 4140×1080px
+- **Center Display:** 2700×1080px
+- **Pillar Displays:** 360×1080px (×4)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Media upload support (PNG, JPG, MP4, MOV)
+- Real-time preview with overlay zones
+- Automatic dimension validation
+- File information and QC status reporting
+- Video playback controls
 
-## Learn More
+## Installation
 
-To learn more about Next.js, take a look at the following resources:
+### Prerequisites
+- Node.js 18+
+- npm or yarn
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Clone repository
+git clone https://github.com/TFH-Web/church-media-qc.git
+cd church-media-qc
 
-## Deploy on Vercel
+# Install dependencies
+npm install
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Run development server
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Access the application at `http://localhost:3000`
+
+### Production Build
+
+```bash
+npm run build
+npm start
+```
+
+## Project Structure
+
+```
+src/
+├── app/              # Next.js app router
+├── components/       # React components
+├── lib/             # Utilities and constants
+└── types/           # TypeScript definitions
+```
+
+## Usage
+
+1. Upload media files via drag-and-drop or file selection
+2. Review overlay visualization showing screen zones
+3. Check QC status for dimension compliance
+4. Toggle overlay visibility as needed
+
+### QC Status Indicators
+
+- **Pass:** Exact dimension match (4140×1080px)
+- **Warning:** Correct aspect ratio, different resolution
+- **Fail:** Incorrect dimensions or aspect ratio
+
+## Technical Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui components
+
+## Configuration
+
+Display dimensions are defined in `src/lib/constants.ts` and can be modified as needed.
+
+## Contributing
+
+Please submit pull requests for any enhancements or bug fixes. Follow the existing code style and include appropriate documentation.
+
+## License
+
+MIT License
+
+## Contact
+
+Developed by [@Samppii](https://github.com/Samppii) for [TFH-Web](https://github.com/TFH-Web)
