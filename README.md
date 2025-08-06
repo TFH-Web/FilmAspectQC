@@ -215,7 +215,7 @@ npm run build
 
 Deployed on Vercel with automatic deployments from main branch.
 
-Production URL: [https://church-media-qc.vercel.app](https://church-media-qc.vercel.app)
+Production URL: filmqc.vercel.app
 
 ## Contributing
 
