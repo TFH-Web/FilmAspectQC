@@ -4,12 +4,14 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { MediaUploader } from '@/components/MediaUploader';
 import { MediaPreview } from '@/components/MediaPreview';
 import { StorageManager } from '@/components/StorageManager';
+import { BatchQCResults } from '@/components/BatchQCResults';
 import { Switch } from '@/components/ui/switch';
-import { MediaMeta, QCResult } from '@/types/media';
+import { MediaMeta, QCResult, BatchQCResult, BatchMediaItem } from '@/types/media';
 import { getMediaDimensions, performQC, isValidFileType, formatFileSize, formatDuration } from '@/lib/mediaUtils';
 import { mediaStorage } from '@/lib/storageUtils';
 import { autoCleanupOldFiles } from '@/components/StorageManager';
-import { Monitor, X, Upload } from 'lucide-react';
+import { Monitor, X, Upload, FolderOpen, ArrowLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
   const [currentFile, setCurrentFile] = useState<File | null>(null);
@@ -19,6 +21,14 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [storageInfo, setStorageInfo] = useState<{ used: number; quota: number } | null>(null);
+  
+  // Batch upload state
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [batchResult, setBatchResult] = useState<BatchQCResult | null>(null);
+  const [batchProcessing, setBatchProcessing] = useState(false);
+  
+  // Navigation state for batch mode
+  const [viewingBatchFile, setViewingBatchFile] = useState<BatchMediaItem | null>(null);
   
   // Load storage info on mount
   useEffect(() => {
@@ -35,6 +45,8 @@ export default function Home() {
   const handleFileSelect = useCallback(async (file: File) => {
     setError(null);
     setLoading(true);
+    setIsBatchMode(false);
+    setViewingBatchFile(null);
     
     // Validate file
     if (!isValidFileType(file)) {
@@ -66,6 +78,7 @@ export default function Home() {
       setMedia(mediaMeta);
       setQcResult(qc);
       setShowOverlay(true);
+      setBatchResult(null);
       
       // Log storage info
       const storageInfo = await mediaStorage.getStorageInfo();
@@ -85,6 +98,175 @@ export default function Home() {
     }
   }, [currentFile]);
   
+  const handleBatchSelect = useCallback(async (files: File[]) => {
+    setError(null);
+    setBatchProcessing(true);
+    setIsBatchMode(true);
+    setCurrentFile(null);
+    setMedia(null);
+    setQcResult(null);
+    setBatchResult(null);
+    setViewingBatchFile(null);
+    
+    try {
+      const batchItems: BatchMediaItem[] = [];
+      let passedFiles = 0;
+      let failedFiles = 0;
+      
+      // Process each file
+      for (const file of files) {
+        try {
+          // Validate file type
+          if (!isValidFileType(file)) {
+            batchItems.push({
+              file,
+              media: {} as MediaMeta, // Placeholder
+              qcResult: {} as QCResult, // Placeholder
+              status: 'error',
+              error: 'Invalid file type'
+            });
+            continue;
+          }
+          
+          // Create object URL
+          const url = URL.createObjectURL(file);
+          
+          // Get media dimensions
+          const mediaMeta = await getMediaDimensions(file, url);
+          
+          // Save to IndexedDB
+          const storageId = await mediaStorage.saveMedia(file, {
+            width: mediaMeta.width,
+            height: mediaMeta.height
+          });
+          
+          // Add storage ID to metadata
+          mediaMeta.id = storageId;
+          
+          // Perform QC check
+          const qc = performQC(mediaMeta);
+          
+          if (qc.dimensionsMatch) {
+            passedFiles++;
+          } else {
+            failedFiles++;
+          }
+          
+          batchItems.push({
+            file,
+            media: mediaMeta,
+            qcResult: qc,
+            status: 'completed'
+          });
+          
+        } catch (err) {
+          console.error(`Error processing file ${file.name}:`, err);
+          batchItems.push({
+            file,
+            media: {} as MediaMeta,
+            qcResult: {} as QCResult,
+            status: 'error',
+            error: 'Failed to process file'
+          });
+        }
+      }
+      
+      // Generate batch summary
+      const allPassed = failedFiles === 0;
+      const commonIssues: string[] = [];
+      const recommendations: string[] = [];
+      
+      if (failedFiles > 0) {
+        const dimensionMismatches = batchItems.filter(item => 
+          item.status === 'completed' && !item.qcResult.dimensionsMatch
+        );
+        
+        if (dimensionMismatches.length > 0) {
+          commonIssues.push(`${dimensionMismatches.length} files have incorrect dimensions`);
+          recommendations.push('Resize files to 4140×1080 pixels for optimal display');
+        }
+        
+        if (failedFiles > passedFiles) {
+          recommendations.push('Most files failed QC - check your media specifications');
+        }
+      }
+      
+      if (allPassed) {
+        recommendations.push('All files passed QC - ready for production use');
+      }
+      
+      const batchQCResult: BatchQCResult = {
+        totalFiles: files.length,
+        passedFiles,
+        failedFiles,
+        items: batchItems,
+        summary: {
+          allPassed,
+          commonIssues,
+          recommendations
+        }
+      };
+      
+      setBatchResult(batchQCResult);
+      
+      // Log storage info
+      const storageInfo = await mediaStorage.getStorageInfo();
+      console.log('Storage used:', (storageInfo.used / 1024 / 1024).toFixed(2), 'MB');
+      console.log('Storage quota:', (storageInfo.quota / 1024 / 1024).toFixed(2), 'MB');
+      
+    } catch (err) {
+      console.error('Error processing batch:', err);
+      setError('Failed to process batch upload. Please try again.');
+    } finally {
+      setBatchProcessing(false);
+    }
+  }, []);
+  
+  // New function to view a specific file from batch results
+  const handleViewBatchFile = useCallback((batchItem: BatchMediaItem) => {
+    if (batchItem.status === 'completed' && batchItem.media && batchItem.qcResult) {
+      setViewingBatchFile(batchItem);
+      setCurrentFile(batchItem.file);
+      setMedia(batchItem.media);
+      setQcResult(batchItem.qcResult);
+      setShowOverlay(true);
+    }
+  }, []);
+  
+  // Function to go back to batch results
+  const handleBackToBatch = useCallback(() => {
+    setViewingBatchFile(null);
+    setCurrentFile(null);
+    setMedia(null);
+    setQcResult(null);
+    setShowOverlay(true);
+  }, []);
+  
+  // Navigation functions for batch files
+  const handlePreviousFile = useCallback(() => {
+    if (viewingBatchFile && batchResult) {
+      const currentIndex = batchResult.items.findIndex(item => item.file.name === viewingBatchFile.file.name);
+      if (currentIndex > 0) {
+        const previousItem = batchResult.items[currentIndex - 1];
+        if (previousItem.status === 'completed' && previousItem.media && previousItem.qcResult) {
+          handleViewBatchFile(previousItem);
+        }
+      }
+    }
+  }, [viewingBatchFile, batchResult, handleViewBatchFile]);
+  
+  const handleNextFile = useCallback(() => {
+    if (viewingBatchFile && batchResult) {
+      const currentIndex = batchResult.items.findIndex(item => item.file.name === viewingBatchFile.file.name);
+      if (currentIndex < batchResult.items.length - 1) {
+        const nextItem = batchResult.items[currentIndex + 1];
+        if (nextItem.status === 'completed' && nextItem.media && nextItem.qcResult) {
+          handleViewBatchFile(nextItem);
+        }
+      }
+    }
+  }, [viewingBatchFile, batchResult, handleViewBatchFile]);
+  
   const handleReset = useCallback(async () => {
     // Clean up object URL
     if (media?.url) {
@@ -102,7 +284,33 @@ export default function Home() {
     setQcResult(null);
     setShowOverlay(true);
     setError(null);
+    setIsBatchMode(false);
+    setBatchResult(null);
+    setViewingBatchFile(null);
   }, [media]);
+  
+  // Keyboard navigation for batch files
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (viewingBatchFile && batchResult) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          handlePreviousFile();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          handleNextFile();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          handleBackToBatch();
+        }
+      }
+    };
+    
+    if (viewingBatchFile) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [viewingBatchFile, batchResult, handlePreviousFile, handleNextFile, handleBackToBatch]);
   
   return (
     <main className="min-h-screen bg-black p-6 relative overflow-hidden">
@@ -127,10 +335,15 @@ export default function Home() {
           {/* Upload Section - Large tile */}
           <div className="lg:col-span-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
             <h2 className="text-sm font-medium text-gray-200 mb-4">Upload Media</h2>
-            {loading ? (
+            {loading || batchProcessing ? (
               <div className="flex flex-col items-center justify-center h-64">
                 <div className="h-12 w-12 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
-                <p className="text-sm text-gray-300 mt-4">Processing...</p>
+                <p className="text-sm text-gray-300 mt-4">
+                  {batchProcessing ? 'Processing batch...' : 'Processing...'}
+                </p>
+                {batchProcessing && (
+                  <p className="text-xs text-gray-400 mt-2">This may take a moment</p>
+                )}
               </div>
             ) : currentFile ? (
               <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm rounded-xl border border-white/10">
@@ -141,18 +354,35 @@ export default function Home() {
                   <div>
                     <p className="text-sm font-medium text-white">{currentFile.name}</p>
                     <p className="text-xs text-gray-400">{(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                    {viewingBatchFile && (
+                      <p className="text-xs text-blue-400 mt-1">From batch upload</p>
+                    )}
                   </div>
                 </div>
-                <button
-                  onClick={handleReset}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
-                >
-                  <X className="h-4 w-4 text-gray-300" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Back to batch button */}
+                  {viewingBatchFile && (
+                    <button
+                      onClick={handleBackToBatch}
+                      className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg transition-all duration-200 border border-blue-500/30"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <span className="text-sm">Back to Batch</span>
+                    </button>
+                  )}
+                  
+                  <button
+                    onClick={handleReset}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
+                  >
+                    <X className="h-4 w-4 text-gray-300" />
+                  </button>
+                </div>
               </div>
             ) : (
               <MediaUploader
                 onFileSelect={handleFileSelect}
+                onBatchSelect={handleBatchSelect}
                 onClear={handleReset}
                 currentFile={currentFile}
                 error={error}
@@ -175,6 +405,10 @@ export default function Home() {
                 ? 'bg-green-500/10 border-green-500/30' 
                 : media 
                 ? 'bg-red-500/10 border-red-500/30'
+                : batchResult
+                ? batchResult.summary.allPassed
+                  ? 'bg-green-500/10 border-green-500/30'
+                  : 'bg-yellow-500/10 border-yellow-500/30'
                 : 'bg-white/5 border-white/10'
             }`}>
               <p className="text-xs text-gray-300 mb-1">Status</p>
@@ -185,11 +419,19 @@ export default function Home() {
                   ) : (
                     <span className="text-red-400">Fail</span>
                   )
+                ) : batchResult ? (
+                  batchResult.summary.allPassed ? (
+                    <span className="text-green-400">Pass</span>
+                  ) : (
+                    <span className="text-yellow-400">Review</span>
+                  )
                 ) : (
                   <span className="text-gray-300">—</span>
                 )}
               </p>
-              <p className="text-xs text-gray-400 mt-2">QC Result</p>
+              <p className="text-xs text-gray-400 mt-2">
+                {viewingBatchFile ? 'Batch File View' : batchResult ? 'Batch QC' : 'QC Result'}
+              </p>
             </div>
             
             {/* Overlay Control */}
@@ -227,10 +469,71 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Preview Section - Full width */}
-          {media && (
+          {/* Preview Section - Full width (show for single file OR when viewing batch file) */}
+          {media && (qcResult || viewingBatchFile) && (
             <div className="lg:col-span-12 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-              <h2 className="text-sm font-medium text-gray-200 mb-4">Preview</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-sm font-medium text-gray-200">
+                    {viewingBatchFile ? `Preview: ${viewingBatchFile.file.name}` : 'Preview'}
+                  </h2>
+                  {viewingBatchFile && batchResult && (
+                    <Badge variant="outline" className="text-xs">
+                      File {batchResult.items.findIndex(item => item.file.name === viewingBatchFile.file.name) + 1} of {batchResult.totalFiles}
+                    </Badge>
+                  )}
+                </div>
+                {viewingBatchFile && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant={viewingBatchFile.qcResult.dimensionsMatch ? "default" : "destructive"}>
+                      {viewingBatchFile.qcResult.dimensionsMatch ? 'Pass' : 'Fail'}
+                    </Badge>
+                    <span className="text-xs text-gray-400">
+                      {viewingBatchFile.media.width} × {viewingBatchFile.media.height}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Navigation buttons for batch files */}
+              {viewingBatchFile && batchResult && (
+                <div className="flex flex-col items-center gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handlePreviousFile}
+                      disabled={batchResult.items.findIndex(item => item.file.name === viewingBatchFile.file.name) === 0}
+                      className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-gray-500 text-white rounded-lg transition-all duration-200 border border-white/20 disabled:border-white/10"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <span className="text-sm">Previous</span>
+                    </button>
+                    
+                    <div className="px-4 py-2 bg-white/5 rounded-lg border border-white/20">
+                      <span className="text-xs text-gray-400">Current:</span>
+                      <Badge 
+                        variant={viewingBatchFile.qcResult.dimensionsMatch ? "default" : "destructive"}
+                        className="ml-2"
+                      >
+                        {viewingBatchFile.qcResult.dimensionsMatch ? 'PASS' : 'FAIL'}
+                      </Badge>
+                    </div>
+                    
+                    <button
+                      onClick={handleNextFile}
+                      disabled={batchResult.items.findIndex(item => item.file.name === viewingBatchFile.file.name) === batchResult.items.length - 1}
+                      className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-gray-500 text-white rounded-lg transition-all duration-200 border border-white/20 disabled:border-white/10"
+                    >
+                      <span className="text-sm">Next</span>
+                      <ArrowLeft className="h-4 w-4 rotate-180" />
+                    </button>
+                  </div>
+                  
+                  <p className="text-xs text-gray-400">
+                    Use ← → arrow keys to navigate • ESC to return to batch
+                  </p>
+                </div>
+              )}
+              
               <MediaPreview
                 media={media}
                 showOverlay={showOverlay}
@@ -238,8 +541,28 @@ export default function Home() {
             </div>
           )}
           
-          {/* Info Grid - Bottom section */}
-          {media && qcResult && (
+          {/* Batch Results Section - Full width (only show when not viewing individual file) */}
+          {batchResult && !viewingBatchFile && (
+            <div className="lg:col-span-12 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <FolderOpen className="h-5 w-5 text-gray-300" />
+                <h2 className="text-sm font-medium text-gray-200">Batch QC Results</h2>
+                <button
+                  onClick={handleReset}
+                  className="ml-auto p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
+                >
+                  <X className="h-4 w-4 text-gray-300" />
+                </button>
+              </div>
+              <BatchQCResults
+                batchResult={batchResult}
+                onFileSelect={handleViewBatchFile}
+              />
+            </div>
+          )}
+          
+          {/* Info Grid - Bottom section (only show for single file, not batch files) */}
+          {media && qcResult && !batchResult && !viewingBatchFile && (
             <>
               {/* File Info */}
               <div className="lg:col-span-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
