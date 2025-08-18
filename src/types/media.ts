@@ -23,3 +23,24 @@ export interface QCResult {
     message: string;
   };
 }
+
+// New types for batch upload support
+export interface BatchMediaItem {
+  file: File;
+  media: MediaMeta;
+  qcResult: QCResult;
+  status: 'processing' | 'completed' | 'error';
+  error?: string;
+}
+
+export interface BatchQCResult {
+  totalFiles: number;
+  passedFiles: number;
+  failedFiles: number;
+  items: BatchMediaItem[];
+  summary: {
+    allPassed: boolean;
+    commonIssues: string[];
+    recommendations: string[];
+  };
+}

@@ -20,17 +20,22 @@ interface OverlayGridProps {
 export function OverlayGrid({ media, containerWidth, containerHeight, showOverlay }: OverlayGridProps) {
   if (!media || !showOverlay) return null;
   
-  // Calculate scale factor to fit the media into the container
-  const scaleX = containerWidth / media.width;
-  const scaleY = containerHeight / media.height;
+  // Always use the expected 4140×1080 dimensions for overlay scaling
+  // This ensures guidelines stay fixed regardless of uploaded media size
+  const expectedWidth = SCREEN_DIMENSIONS.totalWidth;
+  const expectedHeight = SCREEN_DIMENSIONS.totalHeight;
+  
+  // Calculate scale to fit the expected dimensions into the container
+  const scaleX = containerWidth / expectedWidth;
+  const scaleY = containerHeight / expectedHeight;
   const scale = Math.min(scaleX, scaleY);
   
-  // Calculate actual display dimensions
-  const displayWidth = media.width * scale;
-  const displayHeight = media.height * scale;
+  // Calculate display dimensions for the overlay (always 4140×1080)
+  const displayWidth = expectedWidth * scale;
+  const displayHeight = expectedHeight * scale;
   
-  // Calculate scale for overlay zones relative to the expected dimensions
-  const overlayScale = displayWidth / SCREEN_DIMENSIONS.totalWidth;
+  // Calculate overlay zone positions using the fixed scale
+  const overlayScale = scale;
   
   return (
     <TooltipProvider>

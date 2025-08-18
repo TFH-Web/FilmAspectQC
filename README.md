@@ -1,15 +1,15 @@
 # Church Media QC Tool
 
-A modern quality control application for validating media content compatibility with multi-screen church display systems. Features a sleek glass-morphism UI design with unlimited file size support through local storage.
+A modern quality control application for validating media content compatibility with multi-screen church display systems. Features a sleek glass-morphism UI design with unlimited file size support through local storage, batch upload capabilities, and intelligent navigation between files.
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC?style=flat-square&logo=tailwind-css)
 ![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-orange?style=flat-square)
 
 ## Overview
 
-This tool validates media files against specific display requirements for a 5-screen stage configuration, ensuring content is properly formatted and positioned. Features local storage capabilities for handling files of any size without server uploads.
+This tool validates media files against specific display requirements for a 5-screen stage configuration, ensuring content is properly formatted and positioned. Features local storage capabilities for handling files of any size without server uploads, plus advanced batch processing and navigation features.
 
 ### Display Configuration
 
@@ -34,6 +34,33 @@ This tool validates media files against specific display requirements for a 5-sc
 - 🎯 **Dimension Validation** - Automatic resolution checking
 - 🎥 **Video Support** - Full playback controls for video files
 - 📊 **Storage Monitoring** - Track local storage usage with visual indicators
+
+### 🆕 **Batch Upload & Navigation System**
+- **Dual Upload Modes** - Toggle between single file and batch upload
+- **Multiple File Processing** - Upload and QC multiple files simultaneously
+- **Batch Results Overview** - Comprehensive summary with pass/fail statistics
+- **Smart Navigation** - Seamlessly move between batch overview and individual files
+- **Keyboard Shortcuts** - Arrow keys for navigation, ESC to return
+- **File Filtering** - Sort and filter batch results by status, name, or size
+- **Contextual UI** - Interface adapts based on current view mode
+
+### **Enhanced Overlay System**
+- **Fixed Guidelines** - Overlay zones maintain correct 4140×1080 proportions
+- **Consistent Display** - Guidelines never change size regardless of uploaded media dimensions
+- **Visual Feedback** - Clear indicators for safe zones, pillar areas, and HD guidelines
+- **Interactive Tooltips** - Hover for detailed information about each zone
+
+### **🆕 Advanced Content Analysis**
+- **Screen Reading Feature** - AI-powered text analysis to detect spelling mistakes and content issues
+- **Content Validation** - Automatic detection of text problems in images and videos
+- **Quality Assurance** - Comprehensive content review beyond just dimensions
+- **Error Reporting** - Detailed feedback on content issues found
+
+### **🆕 Interactive Stage Visualization**
+- **3D Screen Replica** - Interactive 3D visualization of the stage layout
+- **Spatial Understanding** - Better comprehension of how content maps to physical screens
+- **Real-time Preview** - See content placement in 3D space
+- **Stage Simulation** - Virtual representation of the actual church stage setup
 
 ### Storage Management Features
 - **Auto-cleanup** - Automatically removes files older than 7 days
@@ -73,6 +100,7 @@ npm start
 
 ## Usage
 
+### Single File Upload
 1. **Upload Media**
    - Drag and drop or click to select files
    - No file size limits
@@ -88,6 +116,32 @@ npm start
    - See how content maps to each display
    - HD guide shows standard 1920×1080 placement
 
+### 🆕 **Batch Upload Workflow**
+1. **Toggle to Batch Mode**
+   - Switch between single file and batch upload modes
+   - Visual indicators show current mode
+
+2. **Select Multiple Files**
+   - Drag & drop multiple files or browse to select
+   - Support for mixed file types (images and videos)
+   - Automatic validation and processing
+
+3. **Review Batch Results**
+   - Summary statistics (total, passed, failed)
+   - Individual file results with status indicators
+   - Filter and sort options for easy review
+
+4. **Navigate Between Files**
+   - Click "View" on any file to see individual preview
+   - Use Previous/Next buttons or arrow keys to navigate
+   - "Back to Batch" button returns to overview
+   - ESC key provides quick return to batch view
+
+5. **Batch Management**
+   - Clear indication of which files pass/fail QC
+   - Recommendations for common issues
+   - Easy identification of problematic files
+
 4. **Manage Storage**
    - Monitor storage usage in real-time
    - Clear all files when needed
@@ -98,17 +152,20 @@ npm start
 ```
 src/
 ├── app/              # Next.js app router
+│   └── page.tsx     # Main application with batch support
 ├── components/       # React components
-│   ├── MediaUploader.tsx
-│   ├── MediaPreview.tsx
-│   ├── OverlayGrid.tsx
-│   ├── StorageManager.tsx  # Storage management UI
+│   ├── MediaUploader.tsx      # Enhanced with batch mode toggle
+│   ├── MediaPreview.tsx       # Media display component
+│   ├── OverlayGrid.tsx        # Fixed scaling overlay system
+│   ├── BatchQCResults.tsx     # 🆕 Batch results display
+│   ├── StorageManager.tsx     # Storage management UI
 │   └── ui/          # shadcn/ui components
 ├── lib/             # Utilities
 │   ├── constants.ts
 │   ├── mediaUtils.ts
-│   └── storageUtils.ts  # IndexedDB implementation
+│   └── storageUtils.ts        # IndexedDB implementation
 └── types/           # TypeScript definitions
+    └── media.ts     # 🆕 Enhanced with batch types
 ```
 
 ## Local Storage
@@ -164,6 +221,7 @@ The app efficiently manages memory through:
 3. **Auto-cleanup** - Old files removed automatically
 4. **Manual Control** - Clear storage when needed
 5. **Visual Monitoring** - Track usage in real-time
+6. **🆕 Batch Processing** - Efficient handling of multiple files
 
 ## Browser Compatibility
 
@@ -215,7 +273,7 @@ npm run build
 
 Deployed on Vercel with automatic deployments from main branch.
 
-Production URL: filmqc.vercel.app
+Production URL: [https://filmqc.vercel.app](https://filmqc.vercel.app)
 
 ## Contributing
 
@@ -230,13 +288,37 @@ Production URL: filmqc.vercel.app
 - Storage quota varies by browser (typically 10-50% of available disk space)
 - Very large video files may cause performance issues during processing
 - Some older browsers may have reduced IndexedDB capabilities
+- Batch processing performance depends on file sizes and system resources
+
+## 🆕 **Recent Updates**
+
+### **v2.0 - Batch Upload & Navigation System**
+- **Fixed Overlay Scaling** - Guidelines now maintain correct proportions regardless of media dimensions
+- **Batch Upload Mode** - Toggle between single and multiple file uploads
+- **Smart Navigation** - Seamlessly move between batch overview and individual file views
+- **Keyboard Shortcuts** - Arrow keys for navigation, ESC to return
+- **Enhanced UI** - Contextual interface that adapts to current view mode
+- **Batch QC Results** - Comprehensive overview with filtering and sorting options
+
+### **v2.1 - Content Analysis & 3D Visualization** (Coming Soon)
+- **Screen Reading Feature** - AI-powered text analysis for spelling and content validation
+- **3D Screen Replica** - Interactive 3D stage visualization for better spatial understanding
+- **Advanced QC** - Content quality assurance beyond dimension checking
+- **Enhanced User Experience** - More intuitive stage layout comprehension
+
+### **v1.0 - Core Features**
+- Single file upload and validation
+- Local storage with IndexedDB
+- Overlay grid system for screen zones
+- Storage management and monitoring
 
 ## Upcoming Features
 
-- 📜 **File History Panel** - Browse and restore previous uploads
-- 💾 **Export/Import** - Backup and restore stored files
-- 🏷️ **File Tagging** - Organize files with custom tags
 - 🔍 **Search Function** - Find files by name, date, or dimensions
+- 📊 **Advanced Analytics** - Detailed QC reports and statistics
+- 🔄 **Batch Actions** - Bulk operations on multiple files
+- 📖 **Screen Reading Feature** - AI-powered text analysis to detect spelling mistakes and content issues
+- 🎭 **3D Screen Replica** - Interactive 3D visualization of the stage layout for better spatial understanding
 
 ## License
 
@@ -247,7 +329,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 For issues, questions, or contributions:
 - Open an issue on GitHub
 - Contact the development team
-- Check the [wiki](https://github.com/TFH-Web/church-media-qc/wiki) for guides
 
 ---
 
