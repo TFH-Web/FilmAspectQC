@@ -287,6 +287,28 @@ export default function Home() {
     
     // Only clear batch-related state if not preserving batch results
     if (!preserveBatchResults) {
+      // Clean up all batch files from storage when closing batch results
+      if (batchResult) {
+        for (const item of batchResult.items) {
+          if (item.status === 'completed' && item.media?.id) {
+            try {
+              await mediaStorage.deleteMedia(item.media.id);
+              console.log(`Deleted batch file: ${item.file.name}`);
+            } catch (error) {
+              console.error(`Error deleting batch file ${item.file.name}:`, error);
+            }
+          }
+          // Clean up object URLs
+          if (item.media?.url) {
+            URL.revokeObjectURL(item.media.url);
+          }
+        }
+        
+        // Update storage info after cleanup
+        const updatedInfo = await mediaStorage.getStorageInfo();
+        setStorageInfo(updatedInfo);
+      }
+      
       setIsBatchMode(false);
       setBatchResult(null);
       setViewingBatchFile(null);
@@ -294,7 +316,7 @@ export default function Home() {
       // If we're viewing a batch file, go back to batch results
       setViewingBatchFile(null);
     }
-  }, [media, viewingBatchFile]);
+  }, [media, viewingBatchFile, batchResult]);
   
   // Keyboard navigation for batch files
   useEffect(() => {
@@ -379,7 +401,7 @@ export default function Home() {
                   )}
                   
                   <button
-                    onClick={handleReset}
+                    onClick={() => handleReset()}
                     className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
                   >
                     <X className="h-4 w-4 text-gray-300" />
@@ -556,7 +578,7 @@ export default function Home() {
                   <FolderOpen className="h-5 w-5 text-gray-300" />
                   <h2 className="text-sm font-medium text-gray-200">Batch QC Results</h2>
                   <button
-                    onClick={handleReset}
+                    onClick={() => handleReset()}
                     className="ml-auto p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
                   >
                     <X className="h-4 w-4 text-gray-300" />
