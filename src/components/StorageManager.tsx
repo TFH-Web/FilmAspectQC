@@ -50,8 +50,9 @@ export function StorageManager({ onStorageCleared }: StorageManagerProps) {
     try {
       await mediaStorage.clearAll();
       await loadStorageInfo();
-      onStorageCleared?.();
       setShowConfirm(false);
+      // Call onStorageCleared after updating storage info
+      onStorageCleared?.();
     } catch (error) {
       console.error('Error clearing storage:', error);
     } finally {

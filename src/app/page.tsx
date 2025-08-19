@@ -267,7 +267,7 @@ export default function Home() {
     }
   }, [viewingBatchFile, batchResult, handleViewBatchFile]);
   
-  const handleReset = useCallback(async () => {
+  const handleReset = useCallback(async (preserveBatchResults = false) => {
     // Clean up object URL
     if (media?.url) {
       URL.revokeObjectURL(media.url);
@@ -284,10 +284,17 @@ export default function Home() {
     setQcResult(null);
     setShowOverlay(true);
     setError(null);
-    setIsBatchMode(false);
-    setBatchResult(null);
-    setViewingBatchFile(null);
-  }, [media]);
+    
+    // Only clear batch-related state if not preserving batch results
+    if (!preserveBatchResults) {
+      setIsBatchMode(false);
+      setBatchResult(null);
+      setViewingBatchFile(null);
+    } else if (viewingBatchFile) {
+      // If we're viewing a batch file, go back to batch results
+      setViewingBatchFile(null);
+    }
+  }, [media, viewingBatchFile]);
   
   // Keyboard navigation for batch files
   useEffect(() => {
@@ -543,21 +550,105 @@ export default function Home() {
           
           {/* Batch Results Section - Full width (only show when not viewing individual file) */}
           {batchResult && !viewingBatchFile && (
-            <div className="lg:col-span-12 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-              <div className="flex items-center gap-3 mb-4">
-                <FolderOpen className="h-5 w-5 text-gray-300" />
-                <h2 className="text-sm font-medium text-gray-200">Batch QC Results</h2>
-                <button
-                  onClick={handleReset}
-                  className="ml-auto p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
-                >
-                  <X className="h-4 w-4 text-gray-300" />
-                </button>
+            <>
+              <div className="lg:col-span-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <FolderOpen className="h-5 w-5 text-gray-300" />
+                  <h2 className="text-sm font-medium text-gray-200">Batch QC Results</h2>
+                  <button
+                    onClick={handleReset}
+                    className="ml-auto p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
+                  >
+                    <X className="h-4 w-4 text-gray-300" />
+                  </button>
+                </div>
+                <BatchQCResults
+                  batchResult={batchResult}
+                  onFileSelect={handleViewBatchFile}
+                />
               </div>
-              <BatchQCResults
-                batchResult={batchResult}
-                onFileSelect={handleViewBatchFile}
-              />
+              
+              {/* Storage Manager for Batch Mode */}
+              <div className="lg:col-span-4">
+                <StorageManager onStorageCleared={() => handleReset(true)} />
+              </div>
+            </>
+          )}
+          
+          {/* Info Grid - Bottom section when viewing individual batch file */}
+          {viewingBatchFile && media && qcResult && (
+            <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-4 gap-4">
+              {/* File Info */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
+                <h3 className="text-sm font-medium text-gray-200 mb-4">File Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-400">Name</p>
+                    <p className="text-sm text-white truncate">{media.fileName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Size</p>
+                    <p className="text-sm text-white">{formatFileSize(media.fileSize)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Type</p>
+                    <p className="text-sm text-white capitalize">{media.type}</p>
+                  </div>
+                  {media.duration && (
+                    <div>
+                      <p className="text-xs text-gray-400">Duration</p>
+                      <p className="text-sm text-white">{formatDuration(media.duration)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Storage Manager */}
+              <StorageManager onStorageCleared={() => handleReset(true)} />
+              
+              {/* Dimensions */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
+                <h3 className="text-sm font-medium text-gray-200 mb-4">Dimensions</h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Actual</p>
+                    <p className={`text-2xl font-light ${
+                      qcResult.dimensionsMatch ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {media.width} × {media.height}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-white/10">
+                    <p className="text-xs text-gray-400">{qcResult.details.message}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Screen Layout */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-xl">
+                <h3 className="text-sm font-medium text-gray-200 mb-4">Screen Layout</h3>
+                <div className="grid grid-cols-5 gap-1 h-20">
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P1</span>
+                  </div>
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P2</span>
+                  </div>
+                  <div className="bg-green-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-green-500/30">
+                    <span className="text-[10px] text-green-300">Center</span>
+                  </div>
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P3</span>
+                  </div>
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded flex items-center justify-center border border-red-500/30">
+                    <span className="text-[10px] text-red-300">P4</span>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-gray-400">
+                  <p>Center: 2700×1080</p>
+                  <p>Pillars: 360×1080 each</p>
+                </div>
+              </div>
             </div>
           )}
           
@@ -591,7 +682,7 @@ export default function Home() {
               
               {/* Storage Manager */}
               <div className="lg:col-span-4">
-                <StorageManager onStorageCleared={handleReset} />
+                <StorageManager onStorageCleared={() => handleReset(true)} />
               </div>
               
               {/* Dimensions */}
