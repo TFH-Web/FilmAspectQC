@@ -5,8 +5,9 @@ import { MediaUploader } from '@/components/MediaUploader';
 import { MediaPreview } from '@/components/MediaPreview';
 import { StorageManager } from '@/components/StorageManager';
 import { BatchQCResults } from '@/components/BatchQCResults';
+import { ScreenValidation } from '@/components/ScreenValidation';
 import { Switch } from '@/components/ui/switch';
-import { MediaMeta, QCResult, BatchQCResult, BatchMediaItem } from '@/types/media';
+import { MediaMeta, QCResult, BatchQCResult, BatchMediaItem, ScreenValidationResult } from '@/types/media';
 import { getMediaDimensions, performQC, isValidFileType, formatFileSize, formatDuration } from '@/lib/mediaUtils';
 import { mediaStorage } from '@/lib/storageUtils';
 import { autoCleanupOldFiles } from '@/components/StorageManager';
@@ -23,7 +24,7 @@ export default function Home() {
   const [storageInfo, setStorageInfo] = useState<{ used: number; quota: number } | null>(null);
   
   // Batch upload state
-  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [, setIsBatchMode] = useState(false);
   const [batchResult, setBatchResult] = useState<BatchQCResult | null>(null);
   const [batchProcessing, setBatchProcessing] = useState(false);
   
@@ -266,6 +267,16 @@ export default function Home() {
       }
     }
   }, [viewingBatchFile, batchResult, handleViewBatchFile]);
+  
+  const handleScreenValidation = useCallback((result: ScreenValidationResult) => {
+    if (qcResult) {
+      const updatedQcResult: QCResult = {
+        ...qcResult,
+        screenValidation: result,
+      };
+      setQcResult(updatedQcResult);
+    }
+  }, [qcResult]);
   
   const handleReset = useCallback(async (preserveBatchResults = false) => {
     // Clean up object URL
@@ -674,6 +685,18 @@ export default function Home() {
             </div>
           )}
           
+          {/* Screen Content Validation for batch viewing */}
+          {viewingBatchFile && media && qcResult && (
+            <div className="lg:col-span-12">
+              <ScreenValidation 
+                media={media}
+                qcResult={qcResult}
+                currentFile={currentFile}
+                onValidationComplete={handleScreenValidation}
+              />
+            </div>
+          )}
+          
           {/* Info Grid - Bottom section (only show for single file, not batch files) */}
           {media && qcResult && !batchResult && !viewingBatchFile && (
             <>
@@ -751,6 +774,18 @@ export default function Home() {
                 </div>
               </div>
             </>
+          )}
+          
+          {/* Screen Content Validation - Full width */}
+          {media && qcResult && !batchResult && !viewingBatchFile && (
+            <div className="lg:col-span-12">
+              <ScreenValidation 
+                media={media}
+                qcResult={qcResult}
+                currentFile={currentFile}
+                onValidationComplete={handleScreenValidation}
+              />
+            </div>
           )}
         </div>
       </div>

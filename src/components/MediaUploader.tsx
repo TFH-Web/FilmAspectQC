@@ -76,12 +76,6 @@ export function MediaUploader({ onFileSelect, onBatchSelect, onClear, currentFil
     [isBatchMode, onFileSelect, onBatchSelect]
   );
   
-  const processFile = (file: File) => {
-    if (!isValidFileType(file)) {
-      return;
-    }
-    onFileSelect(file);
-  };
   
   const acceptedTypes = [...ACCEPTED_FILE_TYPES.image, ...ACCEPTED_FILE_TYPES.video].join(',');
   
